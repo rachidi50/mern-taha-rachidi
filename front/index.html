@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connexion</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <aside class="side">
+    <div data-view="login">
+      <h1>Bon retour parmi nous</h1>
+      <p>Connectez-vous pour retrouver vos éléments.</p>
+    </div>
+    <div data-view="register" hidden>
+      <h1>Créez votre compte</h1>
+      <p>Quelques informations suffisent. Votre mot de passe est haché avant d’être enregistré.</p>
+    </div>
+    <div data-view="app" hidden>
+      <h1>Vos éléments</h1>
+      <p>Ajoutez un élément et retrouvez la liste enregistrée dans MongoDB.</p>
+    </div>
+  </aside>
+
+  <main>
+    <form id="form-login" data-view="login" novalidate>
+      <h2>Connexion</h2>
+      <p class="sub">Entrez votre e-mail et votre mot de passe.</p>
+      <div id="alert-login" class="alert" role="alert" hidden></div>
+
+      <div class="field">
+        <label for="login-email">Adresse e-mail</label>
+        <input id="login-email" name="email" type="email" autocomplete="email" required aria-describedby="e-login-email">
+        <p class="err" id="e-login-email"></p>
+      </div>
+      <div class="field">
+        <label for="login-password">Mot de passe</label>
+        <input id="login-password" name="password" type="password" autocomplete="current-password" required aria-describedby="e-login-password">
+        <p class="err" id="e-login-password"></p>
+      </div>
+
+      <button type="submit" id="submit-login">Se connecter</button>
+      <p class="switch">Pas de compte ? <a href="#register">Créer un compte</a></p>
+    </form>
+
+    <form id="form-register" data-view="register" novalidate hidden>
+      <h2>Inscription</h2>
+      <p class="sub">Tous les champs sont obligatoires.</p>
+      <div id="alert-register" class="alert" role="alert" hidden></div>
+
+      <div class="row">
+        <div class="field">
+          <label for="register-firstName">Prénom</label>
+          <input id="register-firstName" name="firstName" autocomplete="given-name" required aria-describedby="e-register-firstName">
+          <p class="err" id="e-register-firstName"></p>
+        </div>
+        <div class="field">
+          <label for="register-lastName">Nom</label>
+          <input id="register-lastName" name="lastName" autocomplete="family-name" required aria-describedby="e-register-lastName">
+          <p class="err" id="e-register-lastName"></p>
+        </div>
+      </div>
+      <div class="field">
+        <label for="register-email">Adresse e-mail</label>
+        <input id="register-email" name="email" type="email" autocomplete="email" required aria-describedby="e-register-email">
+        <p class="err" id="e-register-email"></p>
+      </div>
+      <div class="field">
+        <label for="register-password">Mot de passe</label>
+        <input id="register-password" name="password" type="password" maxlength="72" autocomplete="new-password" required aria-describedby="hint-password e-register-password">
+        <p class="hint" id="hint-password">8 caractères minimum, avec une lettre et un chiffre.</p>
+        <p class="err" id="e-register-password"></p>
+      </div>
+      <div class="field">
+        <label for="register-confirm">Confirmer le mot de passe</label>
+        <input id="register-confirm" name="confirm" type="password" autocomplete="new-password" required aria-describedby="e-register-confirm">
+        <p class="err" id="e-register-confirm"></p>
+      </div>
+
+      <button type="submit" id="submit-register">Créer mon compte</button>
+      <p class="switch">Déjà inscrit ? <a href="#login">Se connecter</a></p>
+    </form>
+
+    <section id="app" data-view="app" class="dashboard" hidden aria-labelledby="app-title">
+      <div class="dashboard-head">
+        <div>
+          <h2 id="app-title">Bonjour <span id="user-first-name"></span></h2>
+          <p class="sub">Les éléments ci-dessous sont enregistrés dans la base de données.</p>
+        </div>
+        <button type="button" class="button-secondary" id="logout">Se déconnecter</button>
+      </div>
+
+      <div id="alert-app" class="alert" role="alert" hidden></div>
+      <form id="form-item" class="item-form" novalidate>
+        <label for="item-name">Nouvel élément</label>
+        <div class="item-row">
+          <input id="item-name" name="name" maxlength="100" required placeholder="Ex. Préparer la démonstration" aria-describedby="e-item-name">
+          <button type="submit" id="submit-item">Ajouter</button>
+        </div>
+        <p class="err" id="e-item-name"></p>
+      </form>
+
+      <div class="list-head">
+        <h3>Éléments enregistrés</h3>
+        <button type="button" class="link-button" id="reload-items">Actualiser</button>
+      </div>
+      <p id="items-status" class="hint" aria-live="polite"></p>
+      <ul id="items" class="items" aria-live="polite"></ul>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
