@@ -17,7 +17,6 @@ Prérequis : Node.js 18+ et un cluster MongoDB Atlas accessible.
 
 ```bash
 cd back
-cp .env.example .env
 # renseigner MONGODB_URI et une vraie valeur JWT_SECRET dans .env
 npm install
 npm run taha
@@ -34,7 +33,7 @@ Servez ensuite le dossier `front/` avec un serveur statique, par exemple l'exten
 
 ## Variables d'environnement
 
-Copiez `back/.env.example` vers `back/.env`. Le vrai fichier `.env` est ignoré par Git.
+Copiez `back/.env.example` vers `back/.env`, puis remplacez les valeurs fictives. Le vrai fichier `.env` est ignoré par Git et ne doit jamais être envoyé sur GitHub.
 
 | Variable | Rôle |
 | --- | --- |
@@ -58,21 +57,60 @@ En production, configurez ces variables dans Vercel séparément de Cloudflare. 
 
 Les erreurs de validation sont en `400`, un e-mail déjà utilisé en `409`, des identifiants invalides en `401`, une route absente en `404` et une erreur interne en `500`.
 
-## Déploiement et bascule
+## Déploiement Vercel et Cloudflare
 
-1. Déployez `front/` comme site statique sur Vercel et remplacez l'URL locale dans `front/app.js` par l'URL de l'API Vercel.
-2. Déployez une seconde API compatible sur Cloudflare Workers et remplacez `https://ton-worker.workers.dev` par son URL réelle.
-3. Donnez aux deux APIs le même contrat (`/api/health`, `/api/auth/*`, `/api/items`) et la même base MongoDB, puis définissez leurs variables séparément.
-4. Définissez `ALLOWED_ORIGINS` avec l'URL réelle du frontend Vercel pour limiter CORS.
-5. Testez : API principale disponible, API principale indisponible, puis les deux indisponibles. Dans ce dernier cas l'interface affiche une erreur claire.
+### 1. Préparer MongoDB Atlas
 
-Une API Express/Mongoose ne s'exécute pas telle quelle dans un Worker : le code du Worker doit utiliser une architecture compatible avec le runtime Cloudflare. Les URLs de production ne sont volontairement pas inventées ici : renseignez-les après vos déploiements.
+Dans `back/.env`, utilisez l'URI exacte proposée par Atlas. Ajoutez `mern_taha` après le nom du cluster, autorisez l'IP de votre environnement dans **Network Access**, puis vérifiez localement `GET /api/items`. Une URI incorrecte bloque les routes qui utilisent la base, même si `/api/health` répond.
+
+### 2. Déployer le backend Vercel
+
+1. Dans Vercel, importez le dépôt GitHub et définissez **Root Directory** sur `back`.
+2. Vercel détecte Express : aucun `vercel.json` n'est requis pour cette API.
+3. Dans **Settings → Environment Variables**, ajoutez pour Production, Preview et Development : `MONGODB_URI`, `JWT_SECRET`, `JWT_EXPIRES_IN` et `ALLOWED_ORIGINS`.
+4. Déployez, puis notez l'URL obtenue, par exemple `https://mon-api.vercel.app`.
+5. Vérifiez `https://mon-api.vercel.app/api/health`.
+
+Ne copiez jamais le fichier `back/.env` sur Vercel : les variables se configurent dans le tableau de bord Vercel.
+
+### 3. Déployer le frontend Vercel
+
+1. Créez un second projet Vercel à partir du même dépôt, avec **Root Directory** sur `front`.
+2. Déployez-le comme site statique. Aucun build n'est nécessaire.
+3. Notez l'URL, par exemple `https://mon-front.vercel.app`.
+4. Dans les variables Vercel du backend, définissez `ALLOWED_ORIGINS=https://mon-front.vercel.app`, puis redéployez le backend.
+
+### 4. Déployer le Worker Cloudflare
+
+Le dossier `cloudflare-worker/` contient un Worker qui expose le même contrat API et transmet les requêtes à une API Express compatible. C'est une architecture compatible avec Workers : Mongoose reste exécuté côté Node/Vercel, pas dans le runtime Worker.
+
+```bash
+cd cloudflare-worker
+npm install
+npx wrangler login
+npx wrangler secret put UPSTREAM_API_URL
+# coller l'URL du backend Vercel, par exemple https://mon-api.vercel.app
+```
+
+Dans `cloudflare-worker/wrangler.jsonc`, remplacez `https://VOTRE_FRONTEND.vercel.app` par l'URL réelle du frontend, puis déployez :
+
+```bash
+npm run deploy
+```
+
+Cloudflare donne une URL comme `https://mern-taha-rachidi-api.<compte>.workers.dev`. Vérifiez ensuite `.../api/health`.
+
+### 5. Activer la bascule dans le frontend
+
+Dans `front/app.js`, remplacez les deux valeurs fictives de `BACKENDS` par l'URL du backend Vercel et celle du Worker Cloudflare, dans cet ordre. Poussez cette modification sur GitHub : Vercel redéploiera le frontend automatiquement.
+
+Le Worker agit comme proxy de l'API Vercel. Pour un vrai test de panne indépendant, déployez une seconde copie de `back/` sur un autre projet Vercel, connecté à la même base, puis configurez cette seconde URL comme `UPSTREAM_API_URL` du Worker. Ainsi, si le backend Vercel principal est indisponible, le Worker garde un upstream séparé.
 
 ## Éléments à fournir pour l'examen
 
-- URL GitHub : à renseigner après création du dépôt distant.
+- URL GitHub : `https://github.com/rachidi50/mern-taha-rachidi.git`
 - URL frontend Vercel : à renseigner après déploiement.
 - URL backend Vercel : à renseigner après déploiement.
 - URL backend Cloudflare : à renseigner après déploiement.
 
-Le dossier reçu n'était pas un dépôt Git (`git status` ne trouvait pas de `.git`) ; il faut donc initialiser/relier le dépôt et réaliser les commits demandés avant remise. Aucun secret local ne doit être ajouté aux commits.
+Avant remise, vérifiez `git status`, `git log --oneline` et que les URLs finales sont renseignées. Aucun secret local ne doit être ajouté aux commits.

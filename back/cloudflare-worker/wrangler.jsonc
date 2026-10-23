@@ -1,0 +1,9 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "mern-taha-rachidi-api",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-23",
+  "vars": {
+    "ALLOWED_ORIGIN": "https://VOTRE_FRONTEND.vercel.app"
+  }
+}

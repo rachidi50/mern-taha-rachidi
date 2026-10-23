@@ -1,6 +1,12 @@
 // Configuration publique : aucune clé ni URI MongoDB ne doit figurer dans le frontend.
+const isLocal = ["localhost", "127.0.0.1"].includes(location.hostname);
 const CONFIG = {
-  BACKENDS: ["http://localhost:3000", "https://ton-worker.workers.dev"],
+  BACKENDS: isLocal
+    ? ["http://localhost:3000"]
+    : [
+        "https://VOTRE_BACKEND.vercel.app",
+        "https://VOTRE_WORKER.workers.dev",
+      ],
   TIMEOUT_MS: 4000,
 };
 

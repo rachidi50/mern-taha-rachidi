@@ -6,3 +6,4 @@ dist/
 build/
 .vercel/
 .wrangler/
+cloudflare-worker/.dev.vars
